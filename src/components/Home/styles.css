@@ -1,5 +1,47 @@
 .home-container {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
   height: 100vh;
+  background-color: #f0f4f8
+}
+
+h1 {
+  text-align: center;
+}
+
+.searchbar-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+}
+
+.searchbar-wrapper {
+  width: 100%;
+  padding: 10px;
+}
+
+button {
+  font-size: 16px;
+  color: white;
+  background-color: #6A5ACD;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  height: 30px;
+  width: 20%;
+  margin-right: 10px;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #5b4ca1;
+}
+
+.error {
+  margin-top: 20px;
+  text-align: center;
+  color: red;
 }

@@ -1,17 +1,34 @@
-import { useState, ChangeEvent } from "react";
+import { useState, ChangeEvent, useCallback, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import { FaSearch } from "react-icons/fa";
-import { SearchbarProps } from "../../types";
+import debounce from "lodash/debounce";
 import "./styles.css";
+import { fetchWeatherByCity } from "../../store/slices/weatherSlice";
 
-function Searchbar(props: SearchbarProps) {
-  const { onSearch } = props;
+function Searchbar() {
+  const dispatch = useDispatch();
   const [searchText, setSearchText] = useState("");
+
+  const debouncedFetchWeatherByCity = useCallback(
+    debounce((city: string) => {
+      dispatch(fetchWeatherByCity(city) as any);
+    }, 1000),
+    []
+  );
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
     setSearchText(e.target.value);
-    onSearch(e.target.value);
+    if (e.target.value.trim()) {
+      debouncedFetchWeatherByCity(e.target.value);
+    }
   };
+
+  useEffect(() => {
+    return () => {
+      debouncedFetchWeatherByCity.cancel();
+    };
+  }, [debouncedFetchWeatherByCity]);
 
   return (
     <div className="searchbar-container">

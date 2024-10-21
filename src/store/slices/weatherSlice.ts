@@ -1,25 +1,67 @@
-import { createSlice, createAction, PayloadAction } from "@reduxjs/toolkit";
-import { LatLongParams, WeatherState } from "../../types";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createAsyncThunk } from "@reduxjs/toolkit";
+import axios, { AxiosError } from "axios";
+import { API_KEY, BASE_URL } from "../../const";
+import { LatLongParams, WeatherDataType, WeatherState } from "../../types";
 
-export const fetchWeatherByCityRequest = createAction(
-  "weather/fetchWeatherByCityRequest"
-);
-export const fetchWeatherByCitySuccess = createAction<any>(
-  "weather/fetchWeatherByCitySuccess"
-);
-export const fetchWeatherByCityError = createAction<any>(
-  "weather/fetchWeatherByCityError"
+export const fetchWeatherByLatLong = createAsyncThunk<
+  WeatherDataType,
+  LatLongParams,
+  { rejectValue: string }
+>(
+  "weather/fetchWeatherByLatLong",
+  async ({ latitude, longitude }: LatLongParams, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${BASE_URL}/forecast.json`, {
+        params: {
+          key: API_KEY,
+          q: `${latitude},${longitude}`,
+          days: 5,
+          aqi: "no",
+        },
+      });
+      return response.data;
+    } catch (error: any) {
+      if (error?.response?.data?.error) {
+        return rejectWithValue(error.response.data.error);
+      } else {
+        return rejectWithValue(
+          "Failed to get weather forcast for your location. Please try later."
+        );
+      }
+    }
+  }
 );
 
-export const fetchWeatherByLatLongRequest = createAction<LatLongParams>(
-  "weather/fetchWeatherByLatLongRequest"
-);
-export const fetchWeatherByLatLongSuccess = createAction<any>(
-  "weather/fetchWeatherByLatLongSuccess"
-);
-export const fetchWeatherByLatLongError = createAction<any>(
-  "weather/fetchWeatherByLatLongError"
-);
+export const fetchWeatherByCity = createAsyncThunk<
+  WeatherDataType,
+  string,
+  { rejectValue: string }
+>("weather/fetchWeatherByCity", async (city, { rejectWithValue }) => {
+  try {
+    console.log("In fetchWeatherByCity");
+    const response = await axios.get(`${BASE_URL}/forecast.json`, {
+      params: {
+        key: API_KEY,
+        q: city,
+        days: 5,
+        aqi: "no",
+      },
+    });
+    console.log("response = ", response.data);
+    return response.data;
+  } catch (error: any) {
+    console.log("error = ", error);
+
+    if (error?.response?.data?.error?.message) {
+      return rejectWithValue(error.response.data.error.message);
+    } else {
+      return rejectWithValue(
+        "Failed to get weather forcast for your location. Please try later."
+      );
+    }
+  }
+});
 
 const initialState: WeatherState = {
   data: null,
@@ -33,34 +75,37 @@ const weatherSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchWeatherByCityRequest, (state) => {
+      .addCase(fetchWeatherByCity.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(
-        fetchWeatherByCitySuccess,
-        (state, action: PayloadAction<any>) => {
-          state.loading = false;
-          state.data = action.payload;
-        }
-      )
-      .addCase(fetchWeatherByCityError, (state, action: PayloadAction<any>) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      .addCase(fetchWeatherByLatLongRequest, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(
-        fetchWeatherByLatLongSuccess,
+        fetchWeatherByCity.fulfilled,
         (state, action: PayloadAction<any>) => {
           state.loading = false;
           state.data = action.payload;
         }
       )
       .addCase(
-        fetchWeatherByLatLongError,
+        fetchWeatherByCity.rejected,
+        (state, action: PayloadAction<any>) => {
+          state.loading = false;
+          state.error = action.payload;
+        }
+      )
+      .addCase(fetchWeatherByLatLong.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        fetchWeatherByLatLong.fulfilled,
+        (state, action: PayloadAction<any>) => {
+          state.loading = false;
+          state.data = action.payload;
+        }
+      )
+      .addCase(
+        fetchWeatherByLatLong.rejected,
         (state, action: PayloadAction<any>) => {
           state.loading = false;
           state.error = action.payload;

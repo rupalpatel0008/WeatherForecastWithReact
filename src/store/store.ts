@@ -1,8 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { locationReducer, weatherReducer } from "./slices";
+import { weatherReducer } from "./slices";
 
 const store = configureStore({
-  reducer: { location: locationReducer, weather: weatherReducer },
+  reducer: { weather: weatherReducer },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware(),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
