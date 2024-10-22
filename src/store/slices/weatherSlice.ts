@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import axios, { AxiosError } from "axios";
-import { API_KEY, BASE_URL } from "../../const";
+import { API_KEY } from "../../const";
+import { apiInstance } from "../../services/api";
 import { LatLongParams, WeatherDataType, WeatherState } from "../../types";
 
 export const fetchWeatherByLatLong = createAsyncThunk<
@@ -12,7 +12,7 @@ export const fetchWeatherByLatLong = createAsyncThunk<
   "weather/fetchWeatherByLatLong",
   async ({ latitude, longitude }: LatLongParams, { rejectWithValue }) => {
     try {
-      const response = await axios.get(`${BASE_URL}/forecast.json`, {
+      const response = await apiInstance.get("/forecast.json", {
         params: {
           key: API_KEY,
           q: `${latitude},${longitude}`,
@@ -39,8 +39,7 @@ export const fetchWeatherByCity = createAsyncThunk<
   { rejectValue: string }
 >("weather/fetchWeatherByCity", async (city, { rejectWithValue }) => {
   try {
-    console.log("In fetchWeatherByCity");
-    const response = await axios.get(`${BASE_URL}/forecast.json`, {
+    const response = await apiInstance.get("/forecast.json", {
       params: {
         key: API_KEY,
         q: city,
@@ -48,11 +47,8 @@ export const fetchWeatherByCity = createAsyncThunk<
         aqi: "no",
       },
     });
-    console.log("response = ", response.data);
     return response.data;
   } catch (error: any) {
-    console.log("error = ", error);
-
     if (error?.response?.data?.error?.message) {
       return rejectWithValue(error.response.data.error.message);
     } else {
